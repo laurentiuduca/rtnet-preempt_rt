@@ -1,0 +1,46 @@
+CC = /home/laur/lucru/raspberry-pi/buildroot/buildroot-2020.05.orangepi/output/host/bin/arm-none-linux-gnueabihf-gcc
+
+LFLAGS = -lrt -lpthread
+#LFLAGS += -mcpu=cortex-a8 -mfpu=neon-vfpv4 -mfloat-abi=hard
+#LFLAGS +=  -march=armv7-a -mfpu=vfpv4 -mfloat-abi=hard -Llib
+
+all: rtt-responder.out rtt-sender.out rtt-laur.out tftpc.out raw_recv.out raw_send.out
+
+raw_send.out: raw_send.o
+	$(CC) -o raw_send.out raw_send.o $(LFLAGS)
+raw_send.o: raw_send.c
+	$(CC) -c -o raw_send.o raw_send.c $(CFLAGS) $(LIBCFLAGS)
+raw_recv.out: raw_recv.o
+	$(CC) -o raw_recv.out raw_recv.o $(LFLAGS)
+raw_recv.o: raw_recv.c
+	$(CC) -c -o raw_recv.o raw_recv.c $(CFLAGS) $(LIBCFLAGS)
+
+rtt-sender.out: rtt-sender.o
+	$(CC) -o rtt-sender.out rtt-sender.o $(LFLAGS) 
+rtt-sender.o: rtt-sender.c
+	$(CC) -c -o rtt-sender.o rtt-sender.c $(CFLAGS) $(LIBCFLAGS)
+rtt-responder.out: rtt-responder.o
+	$(CC) -o rtt-responder.out rtt-responder.o $(LFLAGS)
+rtt-responder.o: rtt-responder.c
+	$(CC) -c -o rtt-responder.o rtt-responder.c $(CFLAGS) $(LIBCFLAGS)
+rtt-laur.out: rtt-laur.o
+	$(CC) -o rtt-laur.out rtt-laur.o $(LFLAGS) $(LFLAGS_ALCHEMY)
+rtt-laur.o: rtt-laur.c
+	$(CC) -c -o rtt-laur.o rtt-laur.c $(CFLAGS) $(LIBCFLAGS)
+rttcp-server.out: rttcp-server.o
+	$(CC) -o rttcp-server.out rttcp-server.o $(LFLAGS) 
+rttcp-server.o: rttcp-server.c
+	$(CC) -c -o rttcp-server.o rttcp-server.c $(CFLAGS) $(LIBCFLAGS)
+rttcp-client.out: rttcp-client.o
+	$(CC) -o rttcp-client.out rttcp-client.o $(LFLAGS) 
+rttcp-client.o: rttcp-client.c
+	$(CC) -c -o rttcp-client.o rttcp-client.c $(CFLAGS) $(LIBCFLAGS)
+tftpc.out: tftpc.o
+	$(CC) -o tftpc.out tftpc.o $(LFLAGS) 
+tftpc.o: tftpc.c
+	$(CC) -c -o tftpc.o tftpc.c $(CFLAGS) $(LIBCFLAGS)
+
+.PHONY: clean all
+
+clean:
+	rm -rf *.out *.so *.o rtt-sender rtt-responder rtt-laur rttcp-server rttcp-client

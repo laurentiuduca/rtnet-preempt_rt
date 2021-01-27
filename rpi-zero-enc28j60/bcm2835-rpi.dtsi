@@ -1,0 +1,167 @@
+#include <dt-bindings/power/raspberrypi-power.h>
+
+/ {
+        aliases {
+                spi0 = &spi0;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		act {
+			label = "ACT";
+			default-state = "keep";
+			linux,default-trigger = "heartbeat";
+		};
+	};
+
+	soc {
+                spi0: spi@7e204000 {
+                        /* Add label */
+                        dmas = <&dma 6>, <&dma 7>;
+                        dma-names = "tx", "rx";
+                };
+
+		firmware: firmware {
+			compatible = "raspberrypi,bcm2835-firmware", "simple-mfd";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			mboxes = <&mailbox>;
+			dma-ranges;
+		};
+
+		power: power {
+			compatible = "raspberrypi,bcm2835-power";
+			firmware = <&firmware>;
+			#power-domain-cells = <1>;
+		};
+
+		vchiq: mailbox@7e00b840 {
+			compatible = "brcm,bcm2835-vchiq";
+			reg = <0x7e00b840 0x3c>;
+			interrupts = <0 2>;
+		};
+	};
+};
+
+&gpio {
+	pinctrl-names = "default";
+
+        spi0_pins: spi0_pins {
+                brcm,pins = <9 10 11>;
+                //brcm,function = <4>; /* alt0 */
+		brcm,function = <BCM2835_FSEL_ALT0>;
+        };
+
+        spi0_cs_pins: spi0_cs_pins {
+                brcm,pins = <8 7>;
+                brcm,function = <1>; /* output */
+        };
+
+	gpioout: gpioout {
+		brcm,pins = <6>;
+		brcm,function = <BCM2835_FSEL_GPIO_OUT>;
+	};
+
+	alt0: alt0 {
+		//brcm,pins = <4 5 7 8 9 10 11>;
+		brcm,pins = <4 5>;
+		brcm,function = <BCM2835_FSEL_ALT0>;
+	};
+
+	eth1_pins: eth1_pins {
+		brcm,pins = <25>;
+		brcm,function = <0>; // in
+		brcm,pull = <0>; // none
+	};
+
+};
+
+&i2c0 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c0_gpio0>;
+	status = "okay";
+	clock-frequency = <100000>;
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_gpio2>;
+	status = "okay";
+	clock-frequency = <100000>;
+};
+
+&usb {
+	power-domains = <&power RPI_POWER_DOMAIN_USB>;
+};
+
+&vec {
+	power-domains = <&power RPI_POWER_DOMAIN_VEC>;
+	status = "okay";
+};
+
+&dsi0 {
+	power-domains = <&power RPI_POWER_DOMAIN_DSI0>;
+};
+
+&dsi1 {
+	power-domains = <&power RPI_POWER_DOMAIN_DSI1>;
+};
+
+
+/* microchip enc28j60 */
+&spi0 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
+        cs-gpios = <&gpio 8 1>, <&gpio 7 1>;
+
+        /* needed to avoid dtc warning */
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        int_pin = <&eth1>, "interrupts:0",
+                  <&eth1_pins>, "brcm,pins:0";
+        speed   = <&eth1>, "spi-max-frequency:0";
+
+        status = "okay";
+
+        eth1: enc28j60@0{
+                compatible = "microchip,enc28j60";
+                reg = <0>; // CE0 
+                pinctrl-names = "default";
+                pinctrl-0 = <&eth1_pins>;
+                interrupt-parent = <&gpio>;
+                interrupts = <25 0x2>; // falling edge 
+                spi-max-frequency = <12000000>;
+                status = "okay";
+        };
+
+/*
+        spidev0: spidev@0{
+                compatible = "spidev";
+                reg = <0>;      // CE0 
+                #address-cells = <1>;
+                #size-cells = <0>;
+                spi-max-frequency = <125000000>;
+                status = "okay";
+        };
+
+        spidev1: spidev@1{
+                compatible = "spidev";
+                reg = <1>;      // CE1
+                #address-cells = <1>;
+                #size-cells = <0>;
+                spi-max-frequency = <125000000>;
+		status = "okay";
+        };
+
+
+	__overrides__ {
+		int_pin = <&eth1>, "interrupts:0",
+		          <&eth1_pins>, "brcm,pins:0";
+		speed   = <&eth1>, "spi-max-frequency:0";
+	};
+*/
+};
+

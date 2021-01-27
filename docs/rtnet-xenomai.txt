@@ -1,0 +1,209 @@
+rtnet
+In rx_interrupt: rtnetif_rx() adds rtskb in a queue dequeued by the rt_stack_mgr_task(real time task) in stack_mgr.c, which calls rt_stack_deliver(rtskb).
+In interrupt 8139too: rt_mark_stack_mgr(rtdev) unblocks rt_stack_mgr_task().
+rt_stack_deliver(rtskb) {
+struct rtnet_device     *rtdev = rtskb->rtdev;
+...
+list_for_each_entry(pt_entry, &rt_packets[hash], list_entry)
+            if (pt_entry->type == rtskb->protocol) {
+…
+                err = pt_entry->handler(rtskb, pt_entry);
+        }
+}
+__rtdev_add_pack(struct rtpacket_type *pt, struct module *module) {
+         list_add_tail(&pt->list_entry,
+                      &rt_packets[ntohs(pt->type) & RTPACKET_HASH_KEY_MASK]);
+    // struct list_head    rt_packets[RTPACKET_HASH_TBL_SIZE];
+}
+pr_info("Packet: %34ph\n", skb->data);
+
+ip_output.c
+static struct rtpacket_type ip_packet_type = {
+    .type =     __constant_htons(ETH_P_IP),
+    .handler =  &rt_ip_rcv
+};
+af_inet.c::module_init(rt_ipv4_proto_init)->__init rt_ip_init(void) {
+    rtdev_add_pack(&ip_packet_type);
+    rt_ip_fragment_init();
+}
+ETH_RTMAC-rtmac_proto_rx, ETH_P_ARP - rt_arp_rcv, ETH_RTCFG - rtcfg_rx_handler, AF_PACKET-rt_packet_rcv
+
+ip_input.c::rt_ip_rcv(skb, pt)->rt_ip_local_deliver(struct rtskb *skb) {
+if (iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+if (iph->frag_off & htons(IP_MF|IP_OFFSET)) {
+skb = ip_fragment.c::rt_ip_defrag(skb, ipprot); 
+//This function returns an rtskb that contains the complete, accumulated IP message.  If not all fragments of the IP message have been received yet, it returns NULL
+} else {
+if ((sock = ipprot->dest_socket(skb)) == NULL) {
+#if IS_ENABLED(CONFIG_RTNET_ADDON_PROXY)
+                   if (rt_ip_fallback_handler) {
+                        __rtskb_push(skb, iph->ihl*4);
+                    rt_ip_fallback_handler(skb);
+                        Return;
+               }
+#endif
+}
+}
+/* Deliver the packet to the next layer */
+ipprot->rcv_handler(skb);
+}
+
+ioctls
+static struct rtnet_ioctls ipv4_ioctls = {
+    .service_name =     "IPv4",
+    .ioctl_type =       RTNET_IOC_TYPE_IPV4,
+    .handler =          ipv4_ioctl
+};
+af_inet.c::module_init(rt_ipv4_proto_init) {
+    rtnet_register_ioctls(&ipv4_ioctls);
+}
+rtnet_register_ioctls(struct rtnet_ioctls *ioctls)){
+    list_add_tail(&ioctls->entry, &ioctl_handlers);
+}
+rtnet_ioctl(...) {
+list_for_each(entry, &ioctl_handlers) {
+            ioctls = list_entry(entry, struct rtnet_ioctls, entry);
+        if (ioctls->ioctl_type == _IOC_TYPE(request)) {
+                    ret = ioctls->handler(rtdev, request, arg);
+            /* request = _RTIOC_…; ex: IOC_RT_IFUP (rtnet_chrdev.h) */
+            return ret;
+        }
+    }
+}
+static struct file_operations rtnet_fops = {
+    .owner = THIS_MODULE,
+    .unlocked_ioctl = rtnet_ioctl,
+};
+static struct miscdevice rtnet_chr_misc_dev = {
+    .minor= RTNET_MINOR,
+    .name = "rtnet",
+    .fops = &rtnet_fops,
+};
+int __init rtnet_chrdev_init(void) {
+err = misc_register(&rtnet_chr_misc_dev);
+}
+
+udp.c
+struct rtsocket *rt_udp_dest_socket(struct rtskb *skb) gaseste socket-ul catre care este destinat pachetul skb
+static struct rtinet_protocol udp_protocol = {
+    .protocol =     IPPROTO_UDP,
+    .dest_socket =  &rt_udp_dest_socket, /* find the dest socket for a specific skb */
+    .rcv_handler =  &rt_udp_rcv,
+    .err_handler =  &rt_udp_rcv_err,
+    .init_socket =  &rt_udp_socket
+};
+static int __init rt_udp_init(void) { 
+...
+    rt_inet_add_protocol(&udp_protocol);
+    return rtdm_dev_register(&udp_device);  // Linux equivalent ?
+}
+rt_udp_socket()->rt_socket_init(fd, IPPROTO_UDP)
+int __rt_socket_init(struct rtdm_fd *fd, unsigned short protocol, struct module *module) {
+    struct rtsocket *sock = rtdm_fd_to_private(fd);
+}
+
+protocol.c
+void rt_inet_add_protocol(struct rtinet_protocol *prot)
+{
+    unsigned char hash = rt_inet_hashkey(prot->protocol);
+
+    if (rt_inet_protocols[hash]==NULL )
+        rt_inet_protocols[hash] = prot;
+}
+
+void rt_udp_rcv (struct rtskb *skb)
+{
+    struct rtsocket *sock = skb->sk;
+    void            (*callback_func)(struct rtdm_fd *, void *);
+    void            *callback_arg;
+    rtdm_lockctx_t  context;
+
+    rtskb_queue_tail(&sock->incoming, skb);
+    rtdm_sem_up(&sock->pending_sem);
+
+    rtdm_lock_get_irqsave(&sock->param_lock, context);
+    callback_func = sock->callback_func;
+    callback_arg  = sock->callback_arg;
+    rtdm_lock_put_irqrestore(&sock->param_lock, context);
+
+    if (callback_func)
+            callback_func(rt_socket_fd(sock), callback_arg);
+}
+ssize_t rt_udp_recvmsg(struct rtdm_fd *fd, struct user_msghdr *u_msg, int msg_flags) {
+    skb = rtskb_dequeue_chain(&sock->incoming);
+}
+
+static struct rtdm_driver udp_driver = {
+    .context_size =     sizeof(struct rtsocket),
+
+    .protocol_family =  PF_INET,
+    .socket_type =      SOCK_DGRAM,
+
+    /* default is UDP */
+    .ops = {
+        .socket =       rt_inet_socket,
+        .close =        rt_udp_close,
+        .ioctl_rt =     rt_udp_ioctl,
+        .ioctl_nrt =    rt_udp_ioctl,
+        .recvmsg_rt =   rt_udp_recvmsg,
+        .sendmsg_rt =   rt_udp_sendmsg,
+        .select =       rt_socket_select_bind,
+    },
+};
+
+static struct rtdm_device udp_device = {
+    .driver = &udp_driver,
+};
+
+int rt_inet_socket(struct rtdm_fd *fd, int protocol)
+{
+    struct rtinet_protocol  *prot;
+
+    if (protocol == 0)
+        switch (rtdm_fd_to_context(fd)->device->driver->socket_type) {
+        case SOCK_DGRAM:
+            protocol = IPPROTO_UDP;
+            break;
+        case SOCK_STREAM:
+            protocol = IPPROTO_TCP;
+            break;
+        }
+
+    prot = rt_inet_protocols[rt_inet_hashkey(protocol)];
+    ...
+        return prot->init_socket(fd);
+}
+
+rtdev.c
+int rt_register_rtnetdev(struct rtnet_device *rtdev) {
+    if (rtdev->features & NETIF_F_LLTX)
+        rtdev->start_xmit = rtdev->hard_start_xmit;
+    else
+        rtdev->start_xmit = rtdev_locked_xmit;
+… }
+udp.c::rt_udp_sendmsg -> ip_output.c::rt_ip_build_xmit() -> rtdev.c::rtdev_xmit(skb) -> rtdev->start_xmit (rtskb, rtdev)
+rt_udp_recvmsg() {
+skb = rtskb_dequeue_chain(&sock->incoming);
+/* remove the UDP header */
+    __rtskb_pull(skb, sizeof(struct udphdr));
+    …
+    do {
+        /* copy the data */
+            ret = rtnet_write_to_iov(fd, iov, msg->msg_iovlen, skb->data, block_size);
+...
+
+        /* next fragment */
+            skb = skb->next;
+    } while (skb && !(flags & MSG_TRUNC));
+}
+
+af_inet.c
+ioctl din rtping.c -> rtpc_dispatch_call(ping_handler); -> rtnet_rtpc.c -> proc->call()
+ping_handler()->rt_icmp_queue_echo_request(call)
+ioctl din rtroute.c -> rtpc_dispatch_call(route_solicit_handler()->rt_arp_solicit());
+
+rtskb_queue_empty(struct rtskb_queue *queue), no udp-checksum-checker in rtnet
+net/rtnet/stack/include/rtnet_socket.h:    
+struct rtsocket {
+struct rtskb_queue      incoming;
+}

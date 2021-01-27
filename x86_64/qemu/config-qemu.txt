@@ -1,0 +1,23 @@
+laur@laurPC100:images-preempt_rt$ cat /etc/network/interfaces
+# interfaces(5) file used by ifup(8) and ifdown(8)
+auto lo
+iface lo inet loopback
+
+iface enp2s0 inet manual
+iface virbr0-nic inet manual
+auto br0
+iface br0 inet static
+    address 192.168.1.100
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+    dns-nameserver 8.8.8.8
+    dns-nameserver 8.8.4.4
+    bridge_ports enp2s0 virbr0-nic
+    bridge_stp      off
+    bridge_maxwait  0
+    bridge_fd       0
+
+laur@laurPC100:images-preempt_rt$ cat /etc/qemu/bridge.conf
+allow virbr0
+allow br0
+
