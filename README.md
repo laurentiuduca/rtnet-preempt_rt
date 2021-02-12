@@ -141,7 +141,7 @@ make -j5 ARCH=arm CROSS_COMPILE="..." CONFIG_DEBUG_INFO=y INSTALL_MOD_PATH=/home
 make -j5 ARCH=arm CROSS_COMPILE="..." CONFIG_DEBUG_INFO=y INSTALL_MOD_PATH=/home/laur/lucru/rtnet/modules zImage bcm2835-rpi-zero-w.dtb modules modules_install
 ```
 
-##5. Boot qemu x86_64 emulator or boot target board
+## 5. Boot qemu x86_64 emulator or boot target board
 - qemu x86_64 emulator (see x86_64/qemu/config-qemu.txt)
 ```
 sudo qemu-system-x86_64 -m 1G --enable-kvm -M q35 -kernel bzImage -hda rootfs-50 -append "console=tty1 console=ttyS0 root=/dev/sda rw" -device rtl8139,netdev=bridgeid,mac=52:54:00:11:22:44 -netdev bridge,br=br0,id=bridgeid -serial stdio
@@ -149,7 +149,7 @@ sudo qemu-system-x86_64 -m 1G              -M q35 -kernel bzImage -hda rootfs-50
 with empty password (ENTER).
 ```
 
-##6. After booting qemu or target, read start-modules.sh (a better name would be start-rtnet.sh)
+## 6. After booting qemu or target, read start-modules.sh (a better name would be start-rtnet.sh)
 - on the target:
 ```
 ./start-modules.sh:
@@ -173,13 +173,13 @@ ifconfig rtproxy up 192.168.1.70
 ping 192.168.1.70
 ```
 
-##7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
+## 7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
 
-##8. Testing
+## 8. Testing
 Please read rtt-laur.c and rtt-sender.c/rtt-responder.c for UDP sockets
 and raw_recv.c and raw_send.c for raw sockets.
 
-###8a. Hello world
+### 8a. Hello world
 on one computer:
 ```
 ./rtt-laur.out
@@ -189,7 +189,7 @@ on another computer
 ./rtt-laur.out -d 192.168.1.20
 ```
 
-###8b. Test RTT
+### 8b. Test RTT
 On one computer
 ```
 ./rtt-responder.out
@@ -199,7 +199,7 @@ on another computer
 ./rtt-sender -d 192.168.1.20
 ```
 
-###8.c. Test raw sockets
+### 8.c. Test raw sockets
 On one computer
 ```
 ./raw_recv
