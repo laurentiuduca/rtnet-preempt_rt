@@ -149,7 +149,7 @@ sudo qemu-system-x86_64 -m 1G              -M q35 -kernel bzImage -hda rootfs-50
 with empty password (ENTER).
 ```
 
-## 6. After booting qemu or target, read start-modules.sh (a better name would be start-rtnet.sh)
+## 6. After booting qemu or target, read start-modules.sh (a better name would be setup-rtnet.sh)
 - on the target:
 ```
 ./start-modules.sh:
