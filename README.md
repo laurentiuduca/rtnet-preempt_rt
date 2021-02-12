@@ -118,7 +118,7 @@ Device Drivers -> Network device support -> Ethernet driver support -> Broadcom,
 
 - x86_64 qemu
 ```
-make -j5 ARCH=x86_64 INSTALL_MOD_PATH=/home/laur/lucru/raspberry-pi/xenomai-x86_64/modules INSTALL_MOD_PATH=/home/user/modules CONFIG_DEBUG_INFO=y bzImage modules modules_install
+make -j5 ARCH=x86_64 INSTALL_MOD_PATH=/home/user/modules CONFIG_DEBUG_INFO=y bzImage modules modules_install
 ```
 
 - rpi-4
