@@ -77,13 +77,13 @@ CPU idle ---> [ ] CPU idle PM support
 
 - rtnet is in the net folder and must compile into kernel its driver
 (there must be selected in-kernel ipv4, icmp and udp from the protocol stack
-and proxy as a module and enable ARP handling via protocol proxy):
+and proxy as a module):
 Select Networking Support - RTnet, 
-	Protocol Stack -> (32) Size of central RX-FIFO,
-		Real-Time IPv4, ICMP support, (32)  Maximum host routing table entries, 
-		UDP support, Real-Time Packet Socket Support. The rest remains unselected.
-	Drivers -> the driver for your computer
-	Add-Ons -> IP protocol proxy for Linux
+  Protocol Stack -> (32) Size of central RX-FIFO,
+    Real-Time IPv4, ICMP support, (32)  Maximum host routing table entries, 
+      UDP support, Real-Time Packet Socket Support. The rest remains unselected.
+  Drivers -> the driver for your computer
+    Add-Ons -> IP protocol proxy for Linux
 
 - be sure to disable the non-RTnet network drivers from net/ethernet
 Device Drivers -> Network device support -> Ethernet driver support -> Broadcom, STMicroelectronics devices, TI, etc
@@ -117,6 +117,7 @@ with empty password (ENTER).
 set -x
 mount -t debugfs debugfs /sys/kernel/debug
 /root/rtifconfig rteth0 up 192.168.1.70
+# wait for the interface to be set up
 /root/rtifconfig rtlo up 127.0.0.1
 ifconfig rtproxy up 192.168.1.70
 /root/rtroute solicit 192.168.1.30 dev rteth0
