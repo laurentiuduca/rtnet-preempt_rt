@@ -81,9 +81,9 @@ and proxy as a module):
 Select Networking Support - RTnet, 
   Protocol Stack -> (32) Size of central RX-FIFO,
     Real-Time IPv4, ICMP support, (32)  Maximum host routing table entries, 
-      UDP support, Real-Time Packet Socket Support. The rest remains unselected.
+    UDP support, Real-Time Packet Socket Support. The rest remains unselected.
   Drivers -> the driver for your computer
-    Add-Ons -> IP protocol proxy for Linux
+  Add-Ons -> IP protocol proxy for Linux
 
 - be sure to disable the non-RTnet network drivers from net/ethernet
 Device Drivers -> Network device support -> Ethernet driver support -> Broadcom, STMicroelectronics devices, TI, etc
