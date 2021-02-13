@@ -175,6 +175,22 @@ ping 192.168.1.70
 
 ## 7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
 
+If you do not use proxy for scp or ssh, you can use tftp.<br>
+On the development host:
+```
+cp zImage /tmp/
+./tftpd -d -P 8086
+```
+On the target, to get zImage:
+```
+./tftpc 192.168.1.100 -P 8086 -g zImage -o
+```
+On the target, to copy to server:
+```
+./tftpc 192.168.1.100 -P 8086 -p filename -o
+```
+You will find filename in /tmp
+
 ## 8. Testing
 Please read rtt-laur.c and rtt-sender.c/rtt-responder.c for UDP sockets
 and raw_recv.c and raw_send.c for raw sockets.
