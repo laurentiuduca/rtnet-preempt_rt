@@ -175,7 +175,7 @@ ping 192.168.1.70
 
 ## 7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
 
-If you do not use proxy for scp or ssh, you can use tftp.<br>
+If you do not use rtnetproxy for scp or ssh, you can use tftp.<br>
 On the development host:
 ```
 cp zImage /tmp/
