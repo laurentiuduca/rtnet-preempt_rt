@@ -20,7 +20,7 @@ https://cdn.kernel.org/pub/linux/kernel
 ## 1a. Apply patch (includes PREEMPT_RT)
 ```
 cd linux-5.9
-patch -p1 < ../rtnet-v11-preempt_rt-linux-5.9.patch
+patch -p1 < ../rtnet-v11b-preempt_rt-linux-5.9.patch
 ```
 
 ## 1b. Add the _rtnet() system calls

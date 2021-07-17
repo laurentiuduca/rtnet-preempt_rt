@@ -1,3 +1,4 @@
+- v11b rtnet_rtdm.h: define RTDM_IOV_FASTMAX 64 instead of 16
 - v11 replaced HRTIMER_MODE_REL with HRTIMER_MODE_REL_HARD in net/rtnet
 - v10b handles NETDEV_TX_BUSY
 
