@@ -1,9 +1,9 @@
-# RTnet (UDP) on PREEMPT_RT Linux
+## RTnet (UDP) on PREEMPT_RT Linux
 
 
 Please read the whole doc to have an impression.
 
-## Features:
+#### Features:
 - ported to raspberry pi 4 (bcmgenet), orange pi one (stmmac), 
 realtek (8139too), beaglebone black (ticpsw), microchip (enc28j60)
 - rtnet UDP socket, bind, recvmsg, sendto, recvfrom, sendmsg, select, poll system calls
@@ -16,22 +16,22 @@ realtek (8139too), beaglebone black (ticpsw), microchip (enc28j60)
 - improvements can be made around the variable msg_in_userspace,
 like avoiding packet multiple copies
 
-## Paper
+#### Paper
 - if you use our work, please cite us:
 L. -C. Duca and A. Duca, "Achieving Hard Real-Time Networking on PREEMPT_RT Linux with RTnet"
 2020 International Symposium on Fundamentals of Electrical Engineering (ISFEE), 
 2020, pp. 1-4, doi: 10.1109/ISFEE51261.2020.9756165.
 
-## 0. Download linux-5.9.tar.xz
+#### 0. Download linux-5.9.tar.xz
 https://cdn.kernel.org/pub/linux/kernel
 
-## 1a. Apply patch (includes PREEMPT_RT)
+#### 1a. Apply patch (includes PREEMPT_RT)
 ```
 cd linux-5.9
 patch -p1 < ../rtnet-v11b-preempt_rt-linux-5.9.patch
 ```
 
-## 1b. Add the _rtnet() system calls
+#### 1b. Add the _rtnet() system calls
 - rpi-4
 ```
 cp ../rpi-4/unistd.h include/uapi/asm-generic/
@@ -60,11 +60,11 @@ cp ../rpi-zero-enc28j60/bcm2835-rpi.dtsi arch/arm/boot/dts/
 cp ../bbb/syscall.tbl arch/arm/tools/
 ```
 
-## 2. Use buildroot to setup a rootfs for the target board
+#### 2. Use buildroot to setup a rootfs for the target board
 
-## 3. Configure linux
+#### 3. Configure linux
 
-### Note for rpi 4 (choose the 64 bits version)
+###### Note for rpi 4 (choose the 64 bits version)
 - SSH is disabled by default; can be enabled by creating a file with name "ssh" in boot partition
 - cmdline.txt: root=/dev/mmcblk1p2 rootwait console=tty1 console=ttyS1,115200
 
@@ -72,7 +72,7 @@ https://gist.github.com/lategoodbye/c7317a42bf7f9c07f5a91baed8c68f75
 
 https://www.raspberrypi.org/forums/viewtopic.php?t=249579
 
-### defconfig
+###### defconfig
 rpi-4
 ```
 make ARCH=arm64 defconfig
@@ -95,7 +95,7 @@ qemu x86_64
 make ARCH=x86_64 x86_64_defconfig
 ```
 
-### In the kernel configuration, set the following settings as enabled [*] or disabled []
+###### In the kernel configuration, set the following settings as enabled [*] or disabled []
 
 - CONFIG_PREEMPT_RT_FULL: General setup → Preemption Model (Fully Preemptible Kernel (RT)) → Fully Preemptible Kernel (RT)
 (Depends on: <choice> && EXPERT [=y] && ARCH_SUPPORTS_RT [=y] && KVM=[n])
@@ -122,7 +122,7 @@ Select Networking Support - RTnet,
 - be sure to disable the non-RTnet network drivers from net/ethernet
 Device Drivers -> Network device support -> Ethernet driver support -> Broadcom, STMicroelectronics devices, TI, etc
 
-## 4. Compile linux
+#### 4. Compile linux
 
 - x86_64 qemu
 ```
@@ -149,7 +149,7 @@ make -j5 ARCH=arm CROSS_COMPILE="..." CONFIG_DEBUG_INFO=y INSTALL_MOD_PATH=/home
 make -j5 ARCH=arm CROSS_COMPILE="..." CONFIG_DEBUG_INFO=y INSTALL_MOD_PATH=/home/laur/lucru/rtnet/modules zImage bcm2835-rpi-zero-w.dtb modules modules_install
 ```
 
-## 5. Boot qemu x86_64 emulator or boot target board
+#### 5. Boot qemu x86_64 emulator or boot target board
 - qemu x86_64 emulator (see x86_64/qemu/config-qemu.txt)
 ```
 sudo qemu-system-x86_64 -m 1G --enable-kvm -M q35 -kernel bzImage -hda rootfs-50 -append "console=tty1 console=ttyS0 root=/dev/sda rw" -device rtl8139,netdev=bridgeid,mac=52:54:00:11:22:44 -netdev bridge,br=br0,id=bridgeid -serial stdio
@@ -157,7 +157,7 @@ sudo qemu-system-x86_64 -m 1G              -M q35 -kernel bzImage -hda rootfs-50
 with empty password (ENTER).
 ```
 
-## 6. After booting qemu or target, read start-modules.sh (a better name would be setup-rtnet.sh)
+#### 6. After booting qemu or target, read start-modules.sh (a better name would be setup-rtnet.sh)
 - on the target:
 ```
 ./start-modules.sh:
@@ -167,7 +167,7 @@ which equivalates to
 set -x
 mount -t debugfs debugfs /sys/kernel/debug
 /root/rtifconfig rteth0 up 192.168.1.70
-# now you should wait for the interface to be set up
+## now you should wait for the interface to be set up
 /root/rtifconfig rtlo up 127.0.0.1
 ifconfig rtproxy up 192.168.1.70
 /root/rtroute solicit 192.168.1.30 dev rteth0
@@ -181,7 +181,7 @@ ifconfig rtproxy up 192.168.1.70
 ping 192.168.1.70
 ```
 
-## 7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
+#### 7. There are provided tftp client (both x86_64 and arm) and server (for x86_64).
 
 If you do not use rtnetproxy for scp or ssh, you can use tftp.<br>
 On the development host:
@@ -199,11 +199,11 @@ On the target, to copy to server:
 ```
 You will find filename in /tmp
 
-## 8. Testing
+#### 8. Testing
 Please read rtt-laur.c and rtt-sender.c/rtt-responder.c for UDP sockets
 and raw_recv.c and raw_send.c for raw sockets.
 
-### 8a. Hello world
+###### 8a. Hello world
 on one computer:
 ```
 ./rtt-laur.out
@@ -213,7 +213,7 @@ on another computer
 ./rtt-laur.out -d 192.168.1.20
 ```
 
-### 8b. Test RTT
+###### 8b. Test RTT
 On one computer
 ```
 ./rtt-responder.out
@@ -223,7 +223,7 @@ on another computer
 ./rtt-sender -d 192.168.1.20
 ```
 
-### 8.c. Test raw sockets
+###### 8.c. Test raw sockets
 On one computer
 ```
 ./raw_recv
