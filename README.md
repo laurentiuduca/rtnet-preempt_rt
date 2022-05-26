@@ -13,6 +13,14 @@ realtek (8139too), beaglebone black (ticpsw), microchip (enc28j60)
 - rtnetproxy for ssh and scp (but uses RT driver bandwidth)
 - also see the help docs in the rtnet-geek repository.
 - TODO: port routing, rtcfg, rtmac, tdma and nomac if there will be interest
+- improvements can be made around the variable msg_in_userspace,
+like avoiding packet multiple copies
+
+## Paper
+- if you use our work, please cite us:
+L. -C. Duca and A. Duca, "Achieving Hard Real-Time Networking on PREEMPT_RT Linux with RTnet"
+2020 International Symposium on Fundamentals of Electrical Engineering (ISFEE), 
+2020, pp. 1-4, doi: 10.1109/ISFEE51261.2020.9756165.
 
 ## 0. Download linux-5.9.tar.xz
 https://cdn.kernel.org/pub/linux/kernel
