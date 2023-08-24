@@ -5,7 +5,9 @@ Please read the whole doc to have an impression.
 
 #### Features:
 * ported to raspberry pi 4 (bcmgenet), orange pi one (stmmac), 
-realtek (8139too), beaglebone black (ticpsw), microchip (enc28j60)
+realtek (8139too), microchip (enc28j60)
+* note: the bbb driver from this repository is not ported to rtnet-preempt_rt,
+I do not remember exactly why I have included it at that time (2 years ago)
 * rtnet UDP socket, bind, recvmsg, sendto, recvfrom, sendmsg, select, poll system calls
 (the system calls names are appended with _rtnet(), but you can rename them);
 * timeout possible for recv;
